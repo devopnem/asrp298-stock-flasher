@@ -1,0 +1,5 @@
+*.log
+*.pid
+*~
+.DS_Store
+__pycache__/

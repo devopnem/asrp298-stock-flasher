@@ -1,0 +1,164 @@
+[BLF_Version]
+Blf_Version_Number = V3.0.0
+
+[UE_Options]
+UE_Boot_Option = 1
+
+[TIM_Configuration]
+Number_of_Images = 7
+Number_of_Keys = 0
+Boot_Flash_Signature = 0x5350491C
+Processor_Type = PXA1826
+FFOS_Type = NONE
+OEM_UniqueID = 0x4E5A4133
+Issue_Date = 0x20140601
+Version = 0x00030400
+Trusted = 0
+
+[Flash_Properties]
+Flash_Block_Size = 0x20000
+Flash_NandID = 0x0
+Max_Upload_Split_Size = 0x10000000
+Max_FBF_Split_Size = 0x10000000
+Max_OTA_Image_Size = 0x2000000
+OTA_Image_Split_Size =
+Flash_Family = SPI-NAND
+Spare_Area_Size = NOT AVAILABLE
+Data_Area_Size = NOT AVAILABLE
+FBF_Sector_Size = -1
+
+[Flash_Options]
+ProductionMode = 0
+Skip_Blocks_Number =
+Erase_All_Flash = 0
+Reset_BBT = 0
+AB_System = 0
+
+[EraseOnly_Option]
+Total_Eraseonly_Areas = 5
+1_Eraseonly_Area_Size = 0x00500000
+1_Eraseonly_Area_FlashStartAddress = 0x02600000
+1_Eraseonly_Area_Partition = 14
+1_Eraseonly_Area_Enable = 1
+2_Eraseonly_Area_Size = 0x01400000
+2_Eraseonly_Area_FlashStartAddress = 0x03F00000
+2_Eraseonly_Area_Partition = 16
+2_Eraseonly_Area_Enable = 1
+3_Eraseonly_Area_Size = 0x00040000
+3_Eraseonly_Area_FlashStartAddress = 0x00140000
+3_Eraseonly_Area_Partition = 8
+3_Eraseonly_Area_Enable = 1
+4_Eraseonly_Area_Size = 0x000C0000
+4_Eraseonly_Area_FlashStartAddress = 0x05F00000
+4_Eraseonly_Area_Partition = 19
+4_Eraseonly_Area_Enable = 1
+5_Eraseonly_Area_Size = 0x00040000
+5_Eraseonly_Area_FlashStartAddress = 0x05FC0000
+5_Eraseonly_Area_Partition = 20
+5_Eraseonly_Area_Enable = 1
+
+[Image_List]
+1_Image_Enable = 0
+1_Image_Tim_Included = 1
+1_Image_Image_ID = 0x54494D48
+1_Image_Next_Image_ID = 0x4F424D49
+1_Image_Path = mtd8.slotb.universal.bin
+1_Image_Flash_Entry_Address = 0x00140000
+1_Image_Load_Address = 0xD1000000
+1_Image_Type = RAW
+1_Image_ID_Name = TIMH
+1_Image_Erase_Size = 0x01982000
+1_Image_Partition_Number = 8
+1_Image_Size_To_CRC_in_bytes = 0
+1_Image_Hash_Algorithm_ID =
+1_Image_Image_Size_To_Hash_in_bytes =
+
+2_Image_Enable = 0
+2_Image_Tim_Included = 1
+2_Image_Image_ID = 0x4F424D49
+2_Image_Next_Image_ID = 0x4B45524E
+2_Image_Path = mtd0.bin
+2_Image_Flash_Entry_Address = 0x00000000
+2_Image_Load_Address = 0x01C00000
+2_Image_Type = RAW
+2_Image_ID_Name = OBMI
+2_Image_Erase_Size = 0x40000
+2_Image_Partition_Number = 0
+2_Image_Size_To_CRC_in_bytes = 0
+2_Image_Hash_Algorithm_ID =
+2_Image_Image_Size_To_Hash_in_bytes =
+
+3_Image_Enable = 1
+3_Image_Tim_Included = 0
+3_Image_Image_ID = 0x4B45524E
+3_Image_Next_Image_ID = 0x524F4F54
+3_Image_Path = stock-mtd14.bin
+3_Image_Flash_Entry_Address = 0x02600000
+3_Image_Load_Address = 0x80008000
+3_Image_Type = RAW
+3_Image_ID_Name = KERN
+3_Image_Erase_Size = 0x500000
+3_Image_Partition_Number = 14
+3_Image_Size_To_CRC_in_bytes = 0
+3_Image_Hash_Algorithm_ID =
+3_Image_Image_Size_To_Hash_in_bytes =
+
+4_Image_Enable = 1
+4_Image_Tim_Included = 0
+4_Image_Image_ID = 0x524F4F54
+4_Image_Next_Image_ID = 0x41535246
+4_Image_Path = stock-mtd16.bin
+4_Image_Flash_Entry_Address = 0x03F00000
+4_Image_Load_Address = 0x00000000
+4_Image_Type = RAW
+4_Image_ID_Name = ROOT
+4_Image_Erase_Size = 0x1400000
+4_Image_Partition_Number = 16
+4_Image_Size_To_CRC_in_bytes = 0
+4_Image_Hash_Algorithm_ID =
+4_Image_Image_Size_To_Hash_in_bytes =
+
+5_Image_Enable = 1
+5_Image_Tim_Included = 0
+5_Image_Image_ID = 0x41535246
+5_Image_Next_Image_ID = 0x5253414E
+5_Image_Path = mtd19.slotb.quietoff.bin
+5_Image_Flash_Entry_Address = 0x05F00000
+5_Image_Load_Address = 0x00000000
+5_Image_Type = RAW
+5_Image_ID_Name = ASRF
+5_Image_Erase_Size = 0x000C0000
+5_Image_Partition_Number = 19
+5_Image_Size_To_CRC_in_bytes = 0
+5_Image_Hash_Algorithm_ID =
+5_Image_Image_Size_To_Hash_in_bytes =
+
+6_Image_Enable = 1
+6_Image_Tim_Included = 0
+6_Image_Image_ID = 0x5253414E
+6_Image_Next_Image_ID = 0x54494D32
+6_Image_Path = mtd20.nasr0.bin
+6_Image_Flash_Entry_Address = 0x05FC0000
+6_Image_Load_Address = 0x00000000
+6_Image_Type = RAW
+6_Image_ID_Name = NASR
+6_Image_Erase_Size = 0x00040000
+6_Image_Partition_Number = 20
+6_Image_Size_To_CRC_in_bytes = 0
+6_Image_Hash_Algorithm_ID =
+6_Image_Image_Size_To_Hash_in_bytes =
+
+7_Image_Enable = 1
+7_Image_Tim_Included = 0
+7_Image_Image_ID = 0x54494D32
+7_Image_Next_Image_ID = 0xFFFFFFFF
+7_Image_Path = mtd8.slotb.universal.bin
+7_Image_Flash_Entry_Address = 0x00140000
+7_Image_Load_Address = 0x00000000
+7_Image_Type = RAW
+7_Image_ID_Name = TIM2
+7_Image_Erase_Size = 0x00040000
+7_Image_Partition_Number = 8
+7_Image_Size_To_CRC_in_bytes = 0
+7_Image_Hash_Algorithm_ID =
+7_Image_Image_Size_To_Hash_in_bytes =

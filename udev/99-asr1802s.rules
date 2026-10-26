@@ -1,0 +1,3 @@
+# Notion P298 / ASR1802S (PXA1826) USB Download Mode
+# Allows non-root access to the ASR WTPTP download mode gadget
+SUBSYSTEM=="usb", ATTR{idVendor}=="2ecc", ATTR{idProduct}=="3002", MODE="0666", TAG+="uaccess"
