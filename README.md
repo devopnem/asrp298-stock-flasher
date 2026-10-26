@@ -18,8 +18,10 @@ Unlike standard vendor packages which fail when flashing across different manufa
    Includes a modified `mtd20` image with byte `0x0C` patched `0x09 -> 0x00`, turning off RSA signature enforcement in OBM.
 4. **Verbose Serial Console (`mtd19` `asr_flag`):**
    Patches `mtd19` with `quiet = 0` (`0x98 = 1`) and `active_slot = 'b'`, giving full visibility over the UART serial console during boot.
-5. **Completely Safe — Zero Risk to Calibration & NVM:**
-   Flashing strictly targets **Slot B** (`mtd14` Kernel, `mtd16` RootFS, `mtd8` DTIM-B, `mtd19`, `mtd20`). It **never** touches Slot A or the critical factory calibration / NVRAM / IMEI partitions (`mtd1` through `mtd6`).
+5. **Clean U-Boot Environment (`mtd21` Bootargs):**
+   Flashes the clean factory stock U-Boot environment with valid CRC32, ensuring `bootcmd=mrvlboot`, `autostart=yes`, `bootdelay=1`, and `verify=no` are active—unbricking devices with corrupted or erased environment blocks.
+6. **Completely Safe — Zero Risk to Calibration & NVM:**
+   Flashing strictly targets **Slot B** (`mtd14` Kernel, `mtd16` RootFS, `mtd8` DTIM-B, `mtd19`, `mtd20`, and `mtd21` env). It **never** touches Slot A or the critical factory calibration / NVRAM / IMEI partitions (`mtd1` through `mtd6`).
 
 ---
 
@@ -40,6 +42,7 @@ asrp298-stock-flasher/
 │   ├── mtd8.slotb.universal.bin # Universal no-verify DTIM-B (256 KB)
 │   ├── mtd19.slotb.quietoff.bin # asr_flag (Slot B, quiet=0) (272 B)
 │   ├── mtd20.nasr0.bin      # NASR partition with RSA disabled (256 KB)
+│   ├── mtd21.bin            # Clean stock U-Boot environment / bootargs (256 KB)
 │   ├── mtd0.bin             # OBM template stub (256 KB)
 │   └── SHA256SUMS           # Checksums for all firmware images
 └── udev/
@@ -129,7 +132,7 @@ The router will now boot into clean stock firmware on **Slot B**!
 | `mtd16`   | `0x03F00000` | 20 MB       | `ROOTFS-B`| **Flashed**: Stock SquashFS RootFS (mtd16)|
 | `mtd19`   | `0x05F00000` | 768 KB      | `asr_flag`| **Flashed**: Active slot `'b'`, quiet=0  |
 | `mtd20`   | `0x05FC0000` | 256 KB      | `nasr`   | **Flashed**: RSA signature bypass        |
-| `mtd21`   | `0x06000000` | 256 KB      | `env`    | U-Boot environment                      |
+| `mtd21`   | `0x06000000` | 256 KB      | `env`    | **Flashed**: Clean stock U-Boot env / bootargs |
 
 ---
 

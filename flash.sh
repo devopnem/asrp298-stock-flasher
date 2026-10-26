@@ -146,7 +146,8 @@ if [ $RC -eq 0 ]; then
     printf "  - Stock rootfs written to Partition 16 (mtd16)\n"
     printf "  - Universal DTIM-B written to Partition 8 (mtd8)\n"
     printf "  - Active boot slot switched to Slot B (mtd19, quiet=0)\n"
-    printf "  - RSA signature verification bypassed (mtd20)\n\n"
+    printf "  - RSA signature verification bypassed (mtd20)\n"
+    printf "  - Clean stock bootargs/U-Boot env written to Partition 21 (mtd21)\n\n"
     if [ -n "$UPID" ]; then
         printf "${BLUE}[*] Waiting 15 seconds to capture initial bootloader & kernel UART output...${NC}\n"
         sleep 15

@@ -5,7 +5,7 @@ Blf_Version_Number = V3.0.0
 UE_Boot_Option = 1
 
 [TIM_Configuration]
-Number_of_Images = 7
+Number_of_Images = 8
 Number_of_Keys = 0
 Boot_Flash_Signature = 0x5350491C
 Processor_Type = PXA1826
@@ -35,7 +35,7 @@ Reset_BBT = 0
 AB_System = 0
 
 [EraseOnly_Option]
-Total_Eraseonly_Areas = 5
+Total_Eraseonly_Areas = 6
 1_Eraseonly_Area_Size = 0x00500000
 1_Eraseonly_Area_FlashStartAddress = 0x02600000
 1_Eraseonly_Area_Partition = 14
@@ -56,6 +56,10 @@ Total_Eraseonly_Areas = 5
 5_Eraseonly_Area_FlashStartAddress = 0x05FC0000
 5_Eraseonly_Area_Partition = 20
 5_Eraseonly_Area_Enable = 1
+6_Eraseonly_Area_Size = 0x00040000
+6_Eraseonly_Area_FlashStartAddress = 0x06000000
+6_Eraseonly_Area_Partition = 21
+6_Eraseonly_Area_Enable = 1
 
 [Image_List]
 1_Image_Enable = 0
@@ -67,7 +71,7 @@ Total_Eraseonly_Areas = 5
 1_Image_Load_Address = 0xD1000000
 1_Image_Type = RAW
 1_Image_ID_Name = TIMH
-1_Image_Erase_Size = 0x01982000
+1_Image_Erase_Size = 0x01A00000
 1_Image_Partition_Number = 8
 1_Image_Size_To_CRC_in_bytes = 0
 1_Image_Hash_Algorithm_ID =
@@ -151,7 +155,7 @@ Total_Eraseonly_Areas = 5
 7_Image_Enable = 1
 7_Image_Tim_Included = 0
 7_Image_Image_ID = 0x54494D32
-7_Image_Next_Image_ID = 0xFFFFFFFF
+7_Image_Next_Image_ID = 0x454E5630
 7_Image_Path = mtd8.slotb.universal.bin
 7_Image_Flash_Entry_Address = 0x00140000
 7_Image_Load_Address = 0x00000000
@@ -162,3 +166,18 @@ Total_Eraseonly_Areas = 5
 7_Image_Size_To_CRC_in_bytes = 0
 7_Image_Hash_Algorithm_ID =
 7_Image_Image_Size_To_Hash_in_bytes =
+
+8_Image_Enable = 1
+8_Image_Tim_Included = 0
+8_Image_Image_ID = 0x454E5630
+8_Image_Next_Image_ID = 0xFFFFFFFF
+8_Image_Path = mtd21.bin
+8_Image_Flash_Entry_Address = 0x06000000
+8_Image_Load_Address = 0x00000000
+8_Image_Type = RAW
+8_Image_ID_Name = ENV0
+8_Image_Erase_Size = 0x00040000
+8_Image_Partition_Number = 21
+8_Image_Size_To_CRC_in_bytes = 0
+8_Image_Hash_Algorithm_ID =
+8_Image_Image_Size_To_Hash_in_bytes =
