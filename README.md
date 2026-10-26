@@ -116,6 +116,29 @@ The router will now boot into clean stock firmware on **Slot B**!
 
 ---
 
+## 🔑 Stock Credentials & SSH Access
+
+Once flashed and booted into the stock firmware, you can connect to the router via LAN/Ethernet or Wi-Fi:
+
+- **Default Router IP:** `192.168.1.1`
+- **SSH Service:** Dropbear (enabled by `dropbear_mode=1` in the `mtd21` environment)
+- **SSH Username:** `root`
+- **SSH Password:** `85719364` *(configured in `mtd21` as `dropbear_password=85719364`)*
+
+To log in:
+```bash
+ssh root@192.168.1.1
+# When prompted, enter password: 85719364
+```
+
+> [!TIP]
+> If your modern OpenSSH client rejects older legacy ciphers/key-exchange algorithms used by the stock Dropbear daemon, connect using:
+> ```bash
+> ssh -oHostKeyAlgorithms=+ssh-rsa -oKexAlgorithms=+diffie-hellman-group1-sha1 -oCiphers=+aes128-cbc root@192.168.1.1
+> ```
+
+---
+
 ## 🗺️ Partition Map Reference
 
 | Partition | Offset       | Size        | Name     | Description / Role in this Flasher       |
