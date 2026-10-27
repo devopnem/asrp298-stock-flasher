@@ -29,22 +29,16 @@ Unlike standard vendor packages which fail when flashing across different manufa
 
 ```
 asrp298-stock-flasher/
-├── flash.sh                 # Unified flashing script (with auto UART logging)
+├── flash.sh                 # Master unified flashing script (OpenWrt or Stock)
+├── flash_openwrt.sh         # Shortcut for './flash.sh openwrt'
+├── flash_stock.sh           # Shortcut for './flash.sh stock'
 ├── tools/
 │   ├── swdl_linux           # ASR SWDownloader Linux x86_64 standalone binary
 │   ├── fbfmake              # FBF image generator
 │   ├── MakeDownloadPackage  # Download package utility
 │   └── fbfdownloader        # Downloader protocol helper
-├── firmware/
-│   ├── p298-stock-slotb.blf # BLF flash descriptor targeting Slot B
-│   ├── stock-mtd14.bin      # Clean stock Linux ARM zImage kernel (5.0 MB)
-│   ├── stock-mtd16.bin      # Clean stock SquashFS rootfs (20.0 MB)
-│   ├── mtd8.slotb.universal.bin # Universal no-verify DTIM-B (256 KB)
-│   ├── mtd19.slotb.quietoff.bin # asr_flag (Slot B, quiet=0) (272 B)
-│   ├── mtd20.nasr0.bin      # NASR partition with RSA disabled (256 KB)
-│   ├── mtd21.bin            # Clean stock U-Boot environment / bootargs (256 KB)
-│   ├── mtd0.bin             # OBM template stub (256 KB)
-│   └── SHA256SUMS           # Checksums for all firmware images
+├── firmware/                # Stock firmware images (Kernel mtd14, RootFS mtd16, BLF)
+├── firmware-openwrt/        # OpenWrt firmware images (Kernel mtd14, RootFS mtd16, BLF)
 └── udev/
     └── 99-asr1802s.rules    # Optional udev rule for USB download mode (2ecc:3002)
 ```
@@ -55,8 +49,8 @@ asrp298-stock-flasher/
 
 1. **USB Data Connection:**
    Connect a USB cable between the router and your Linux PC.
-2. **Download Mode Boot Pin (Test Point):**
-   To put the ASR1802S SoC into USB Boot ROM mode (`2ecc:3002`), short the `USB_BOOT` test point to `GND` while powering on.
+2. **Download Mode Entry (Automatic):**
+   Connect the USB cable between the router and computer, start the flashing script, and then power on the router. The flasher detects the board and automatically enters download mode (`2ecc:3002`). (Test point shorting of `USB_BOOT` to `GND` is only needed as an emergency fallback if the board fails to handshake).
 3. **Optional: UART Serial Cable (1.8V TTL):**
    - Baud rate: `115200 8N1`
    - Pins: `GND`, `TX`, `RX` (Do **not** connect 3.3V/5V VCC!)
@@ -75,16 +69,18 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 
 ### 2. Run the Flasher
 
-Launch the automated script (requires root or will prompt via `sudo`/`doas`):
+Launch the automated script to flash OpenWrt or restore Stock firmware:
 
 ```bash
-./flash.sh
-```
+# Flash OpenWrt (kernel + rootfs) to Slot B:
+./flash.sh openwrt
+# or shortcut:
+./flash_openwrt.sh
 
-If you have a USB-to-UART adapter connected for serial logging, it is automatically detected and monitored. You can also specify the port:
-
-```bash
-./flash.sh --uart /dev/ttyUSB0
+# Restore factory stock Linux firmware to Slot B:
+./flash.sh stock
+# or shortcut:
+./flash_stock.sh
 ```
 
 ### 3. Enter Download Mode
@@ -96,10 +92,9 @@ When the script displays:
 Please plug your USB device
 ```
 
-1. Short the `USB_BOOT` test point on the PCB to `GND`.
-2. Connect the 12V power supply to turn on the router.
-3. The board will enumerate as USB ID `2ecc:3002`.
-4. Release the `USB_BOOT` short once flashing begins.
+1. Ensure the USB cable is connected between the router and computer.
+2. Start the flashing script (`./flash.sh` or `./flash_openwrt.sh`).
+3. Turn on the router (or plug in the 12V power supply). The flasher detects the board and transitions it automatically into download mode (`2ecc:3002`).
 
 ### 4. Flashing Progress & Completion
 

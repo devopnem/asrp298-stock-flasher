@@ -1,25 +1,20 @@
 #!/bin/sh
 #
-# Universal Stock Flasher for Notion P298 (ASR1802S / PXA1826)
+# Universal Firmware Flasher for Notion P298 (ASR1802S / PXA1826)
 #
-# Flashes verified stock kernel (mtd14) and rootfs (mtd16) to Slot B
-# using the universal hash-agnostic DTIM-B, active_slot='b', quiet=0,
-# and NASR RSA signature bypass.
+# Flashes either OpenWrt or Stock Linux firmware to Slot B using the
+# universal hash-agnostic DTIM-B, active_slot='b', quiet=0, and NASR RSA bypass.
 #
-# Safe: preserves Slot A and all factory calibration/NVRAM partitions (mtd1..mtd6).
-# Universal: boots on any board revision or factory firmware generation (2024, 2025, 2026).
+# Safe: strictly targets Slot B (mtd14, mtd16, mtd8, mtd19, mtd20, mtd21).
+#       Never touches Slot A or factory calibration/NVRAM (mtd1..mtd6).
 #
-
 set -eu
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 TOOLS_DIR="$SCRIPT_DIR/tools"
-FIRMWARE_DIR="$SCRIPT_DIR/firmware"
-BLF_FILE="$FIRMWARE_DIR/p298-stock-slotb.blf"
 SWDL="$TOOLS_DIR/swdl_linux"
-UART_DEV="/dev/ttyUSB0"
-ENABLE_UART=1
 TIMEOUT=600
+TARGET=""
 
 # Color formatting
 RED='\033[0;31m'
@@ -30,18 +25,35 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-# Usage / arguments
 usage() {
-    printf "${BOLD}Usage:${NC} %s [options]\n\n" "$0"
-    printf "Options:\n"
-    printf "  --uart <dev>       Serial console device (default: /dev/ttyUSB0)\n"
-    printf "  --no-uart          Disable UART serial capture\n"
-    printf "  -t, --timeout <s > USB download wait timeout in seconds (default: 600)\n"
-    printf "  -h, --help         Show this help message\n\n"
+    printf "${BOLD}Usage:${NC} %s <target> [options]\n\n" "$(basename "$0")"
+    printf "${BOLD}Targets:${NC}\n"
+    printf "  ${GREEN}openwrt${NC}              Flash OpenWrt Linux 6.18 kernel & SquashFS rootfs to Slot B\n"
+    printf "  ${GREEN}stock${NC}                Restore clean factory stock Linux firmware to Slot B\n\n"
+    printf "${BOLD}Options:${NC}\n"
+    printf "  -t, --timeout <seconds>  USB download mode timeout in seconds (default: 600)\n"
+    printf "  -h, --help               Display this comprehensive help guide\n\n"
+    printf "${BOLD}Examples:${NC}\n"
+    printf "  doas ./flash.sh openwrt\n"
+    printf "  doas ./flash.sh stock\n"
+    printf "  doas ./flash.sh openwrt --timeout 300\n\n"
+    printf "${BOLD}Convenience Wrappers:${NC}\n"
+    printf "  ./flash_openwrt.sh       Shortcut for './flash.sh openwrt'\n"
+    printf "  ./flash_stock.sh         Shortcut for './flash.sh stock'\n\n"
+    printf "${BOLD}Hardware Instructions:${NC}\n"
+    printf "  1. Connect a USB data cable between the router and your computer.\n"
+    printf "  2. Launch this flasher script with root privileges (doas / sudo).\n"
+    printf "  3. Power on the router (or plug in the 12V power supply).\n"
+    printf "  4. The flasher automatically handshakes with the ASR1802S bootloader\n"
+    printf "     over USB Download Mode (USB ID 2ecc:3002) and writes all partitions.\n"
+    printf "  5. Once completed, power-cycle the router normally to boot.\n\n"
+    printf "${BOLD}Safety & Dual-Slot Architecture:${NC}\n"
+    printf "  This flasher strictly programs Slot B (mtd14, mtd16, mtd8, mtd19, mtd20, mtd21).\n"
+    printf "  It NEVER touches Slot A or factory calibration/IMEI/MAC data (mtd1..mtd6).\n"
     exit 0
 }
 
-# Parse help early before privilege escalation
+# Parse help early before privilege check
 for arg in "$@"; do
     case "$arg" in
         -h|--help)
@@ -50,7 +62,7 @@ for arg in "$@"; do
     esac
 done
 
-# Check for root privileges
+# Root privilege check / auto-elevation
 if [ "$(id -u)" -ne 0 ]; then
     if command -v doas >/dev/null 2>&1; then
         printf "${YELLOW}Privilege escalation required. Re-running with doas...${NC}\n"
@@ -59,76 +71,107 @@ if [ "$(id -u)" -ne 0 ]; then
         printf "${YELLOW}Privilege escalation required. Re-running with sudo...${NC}\n"
         exec sudo sh "$0" "$@"
     else
-        printf "${RED}Error: This script must be run as root (or install sudo/doas).${NC}\n" >&2
+        printf "${RED}Error: Root privileges required. Please run with doas or sudo.${NC}\n" >&2
         exit 1
     fi
 fi
 
+# Parse arguments
 while [ $# -gt 0 ]; do
     case "$1" in
-        --uart)
-            UART_DEV="$2"
-            shift 2
+        openwrt|--openwrt)
+            TARGET="openwrt"
+            shift
             ;;
-        --no-uart)
-            ENABLE_UART=0
+        stock|--stock)
+            TARGET="stock"
             shift
             ;;
         -t|--timeout)
-            TIMEOUT="$2"
-            shift 2
+            if [ $# -ge 2 ]; then
+                TIMEOUT="$2"
+                shift 2
+            else
+                printf "${RED}Error: --timeout requires a value in seconds.${NC}\n" >&2
+                exit 1
+            fi
+            ;;
+        -h|--help)
+            usage
             ;;
         *)
-            printf "${RED}Unknown option: %s${NC}\n" "$1"
+            printf "${RED}Error: Unknown argument: %s${NC}\n\n" "$1" >&2
             usage
             ;;
     esac
 done
 
-printf "${CYAN}================================================================${NC}\n"
-printf "${BOLD}${CYAN}   Notion P298 (ASR1802S) Universal Stock Unbrick & Flasher    ${NC}\n"
-printf "${CYAN}================================================================${NC}\n\n"
+# If no target specified, show interactive prompt if in terminal, or fail gracefully
+if [ -z "$TARGET" ]; then
+    if [ -t 0 ]; then
+        printf "${CYAN}================================================================${NC}\n"
+        printf "${BOLD}${CYAN}            Notion P298 (ASR1802S) Firmware Flasher             ${NC}\n"
+        printf "${CYAN}================================================================${NC}\n\n"
+        printf "No firmware target specified. Please select an option:\n\n"
+        printf "  ${BOLD}1)${NC} ${GREEN}OpenWrt${NC}   (Linux 6.18 Kernel + SquashFS RootFS on Slot B)\n"
+        printf "  ${BOLD}2)${NC} ${YELLOW}Stock${NC}     (Restore Factory Stock Firmware on Slot B)\n"
+        printf "  ${BOLD}3)${NC} Exit\n\n"
+        printf "Select choice [1-3]: "
+        read -r choice
+        case "$choice" in
+            1) TARGET="openwrt" ;;
+            2) TARGET="stock" ;;
+            *) printf "\nCancelled.\n"; exit 0 ;;
+        esac
+    else
+        printf "${RED}Error: No firmware target specified (use 'openwrt' or 'stock').${NC}\n" >&2
+        usage
+    fi
+fi
+
+# Set target configurations
+case "$TARGET" in
+    openwrt)
+        TITLE="Notion P298 (ASR1802S) OpenWrt Slot B Flasher"
+        FIRMWARE_DIR="$SCRIPT_DIR/firmware-openwrt"
+        BLF_FILE="$FIRMWARE_DIR/p298-openwrt-slotb.blf"
+        KERNEL_DESC="OpenWrt kernel (Linux 6.18)"
+        ROOTFS_DESC="OpenWrt SquashFS rootfs"
+        ;;
+    stock)
+        TITLE="Notion P298 (ASR1802S) Universal Stock Flasher"
+        FIRMWARE_DIR="$SCRIPT_DIR/firmware"
+        BLF_FILE="$FIRMWARE_DIR/p298-stock-slotb.blf"
+        KERNEL_DESC="Stock Linux kernel"
+        ROOTFS_DESC="Stock SquashFS rootfs"
+        ;;
+esac
 
 # Pre-flight checks
 if [ ! -x "$SWDL" ]; then
-    printf "${RED}Error: Flasher binary not found or not executable: %s${NC}\n" "$SWDL" >&2
+    printf "${RED}Error: Flasher utility not found or not executable: %s${NC}\n" "$SWDL" >&2
     exit 1
 fi
 
 if [ ! -f "$BLF_FILE" ]; then
-    printf "${RED}Error: BLF configuration not found: %s${NC}\n" "$BLF_FILE" >&2
+    printf "${RED}Error: Flash descriptor not found: %s${NC}\n" "$BLF_FILE" >&2
     exit 1
 fi
 
 # Clean stale locks
 rm -f "$TOOLS_DIR/swdlinux.pid" /tmp/swdlinux.pid 2>/dev/null || true
 
-# Prepare UART capture if enabled
-UPID=
-ULOG="$SCRIPT_DIR/uart_boot.log"
-cleanup() {
-    if [ -n "$UPID" ]; then
-        kill "$UPID" 2>/dev/null || true
-        wait "$UPID" 2>/dev/null || true
-    fi
-}
-trap cleanup EXIT INT TERM
+printf "\n${CYAN}================================================================${NC}\n"
+printf "${BOLD}${CYAN}   %s   ${NC}\n" "$TITLE"
+printf "${CYAN}================================================================${NC}\n\n"
 
-if [ "$ENABLE_UART" -eq 1 ] && [ -e "$UART_DEV" ]; then
-    printf "${BLUE}[*] UART console detected on %s. Capturing boot logs to %s...${NC}\n" "$UART_DEV" "$ULOG"
-    # Configure 115200 8N1 raw if stty is present
-    stty -F "$UART_DEV" 115200 raw -echo cs8 2>/dev/null || true
-    cat "$UART_DEV" > "$ULOG" 2>&1 &
-    UPID=$!
-elif [ "$ENABLE_UART" -eq 1 ]; then
-    printf "${YELLOW}[!] UART device %s not detected (skipping serial capture).${NC}\n" "$UART_DEV"
-fi
+printf "${BOLD}Target Profile:${NC} %s\n" "$TARGET"
+printf "${BOLD}BLF Recipe:${NC}     %s\n\n" "$BLF_FILE"
 
 printf "${BOLD}Hardware Instructions:${NC}\n"
-printf "  1. Connect USB cable between router and computer.\n"
-printf "  2. Short the ${YELLOW}USB_BOOT / download pin${NC} to ${YELLOW}GND${NC} (test point on PCB).\n"
-printf "  3. Power on the router (or plug in 12V adapter).\n"
-printf "  4. Once device ${GREEN}2ecc:3002${NC} is detected, release the short.\n\n"
+printf "  1. Connect USB data cable between router and computer.\n"
+printf "  2. Power on the router (or plug in 12V adapter) now.\n"
+printf "  3. Flasher will automatically detect the board in download mode (2ecc:3002).\n\n"
 printf "${CYAN}[*] Starting SWDownloader (waiting up to %ss for USB download mode)...${NC}\n\n" "$TIMEOUT"
 
 # Execute SWDownloader in tools directory
@@ -142,25 +185,19 @@ if [ $RC -eq 0 ]; then
     printf "${GREEN}================================================================${NC}\n"
     printf "${BOLD}${GREEN}                 FLASH COMPLETED SUCCESSFULLY!                  ${NC}\n"
     printf "${GREEN}================================================================${NC}\n"
-    printf "  - Stock kernel written to Partition 14 (mtd14)\n"
-    printf "  - Stock rootfs written to Partition 16 (mtd16)\n"
+    printf "  - %s written to Partition 14 (mtd14)\n" "$KERNEL_DESC"
+    printf "  - %s written to Partition 16 (mtd16)\n" "$ROOTFS_DESC"
     printf "  - Universal DTIM-B written to Partition 8 (mtd8)\n"
-    printf "  - Active boot slot switched to Slot B (mtd19, quiet=0)\n"
+    printf "  - Active boot slot set to Slot B (mtd19, quiet=0)\n"
     printf "  - RSA signature verification bypassed (mtd20)\n"
-    printf "  - Clean stock bootargs/U-Boot env written to Partition 21 (mtd21)\n\n"
-    if [ -n "$UPID" ]; then
-        printf "${BLUE}[*] Waiting 15 seconds to capture initial bootloader & kernel UART output...${NC}\n"
-        sleep 15
-        printf "${BLUE}[*] Boot log captured in: %s${NC}\n" "$ULOG"
-    fi
-    printf "${BOLD}The router will now boot into stock firmware on Slot B.${NC}\n"
-    printf "Reboot the router normally (disconnect USB_BOOT pin, power-cycle).\n"
+    printf "  - Clean bootargs/U-Boot env written to Partition 21 (mtd21)\n\n"
+    printf "${BOLD}Flashing complete. Power cycle the router normally to boot.${NC}\n\n"
 else
     printf "${RED}================================================================${NC}\n"
     printf "${BOLD}${RED}                      FLASHING FAILED                           ${NC}\n"
     printf "${RED}================================================================${NC}\n"
     printf "SWDownloader exited with error code: %s\n" "$RC"
-    printf "Check USB connection, verify download mode pin (2ecc:3002), and try again.\n"
+    printf "Check USB cable connection, verify download mode (2ecc:3002), and retry.\n\n"
 fi
 
 exit "$RC"
