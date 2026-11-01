@@ -115,7 +115,7 @@ The router will now boot into clean firmware on **Slot B**!
 
 If this router was previously running factory stock firmware, the user data partition (`mtd23` / `rootfs_data`) still contains stock UBI data. When booting OpenWrt for the first time, JFFS2 will scan these incompatible blocks, causing boot delays and falling back to a temporary non-persistent RAM overlay.
 
-To format persistent storage on OpenWrt (~31.5 MB JFFS2):
+To format persistent storage on OpenWrt (~24.75 MB JFFS2):
 
 1. Connect your PC to the router's LAN port (`192.168.1.1`).
 2. Log in via SSH (no password required):
@@ -129,7 +129,7 @@ To format persistent storage on OpenWrt (~31.5 MB JFFS2):
 4. Power-cycle the router (unplug & replug the 12V power supply).
 
 > [!NOTE]
-> On the next boot, OpenWrt will automatically format `rootfs_data` as a clean JFFS2 overlay filesystem (`/overlay`, 31.5 MB). This only needs to be run **once** when transitioning from stock firmware. Future OpenWrt upgrades will preserve your overlay settings.
+> On the next boot, OpenWrt will automatically format `rootfs_data` as a clean JFFS2 overlay filesystem (`/overlay`, 24.75 MB). This only needs to be run **once** when transitioning from stock firmware. Future OpenWrt upgrades will preserve your overlay settings.
 
 ---
 

@@ -209,7 +209,7 @@ if [ $RC -eq 0 ]; then
         printf "     ${BOLD}mtd erase rootfs_data${NC}\n\n"
         printf "  ${CYAN}3. Power-cycle the router (unplug & replug 12V supply).${NC}\n\n"
         printf "On next boot, OpenWrt will automatically format rootfs_data as a\n"
-        printf "clean 31.5MB JFFS2 overlay. (You only need to run this ONCE).\n"
+        printf "clean 24.75MB JFFS2 overlay. (You only need to run this ONCE).\n"
         printf "${YELLOW}================================================================${NC}\n\n"
     fi
 else
