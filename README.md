@@ -111,25 +111,13 @@ The router will now boot into clean firmware on **Slot B**!
 
 ---
 
-## ⚡ First-Time OpenWrt Setup (Coming from Stock)
+## ⚡ OpenWrt Storage & First Boot
 
-If this router was previously running factory stock firmware, the user data partition (`mtd23` / `rootfs_data`) still contains stock UBI data. When booting OpenWrt for the first time, JFFS2 will scan these incompatible blocks, causing boot delays and falling back to a temporary non-persistent RAM overlay.
-
-To format persistent storage on OpenWrt (~24.75 MB JFFS2):
-
-1. Connect your PC to the router's LAN port (`192.168.1.1`).
-2. Log in via SSH (no password required):
-   ```bash
-   ssh root@192.168.1.1
-   ```
-3. Erase the old stock data partition:
-   ```bash
-   mtd erase rootfs_data
-   ```
-4. Power-cycle the router (unplug & replug the 12V power supply).
-
-> [!NOTE]
-> On the next boot, OpenWrt will automatically format `rootfs_data` as a clean JFFS2 overlay filesystem (`/overlay`, 24.75 MB). This only needs to be run **once** when transitioning from stock firmware. Future OpenWrt upgrades will preserve your overlay settings.
+OpenWrt uses a native **UBIFS** overlay filesystem on the SPI-NAND flash partition (`mtd23`).
+- **Initial Setup:** Completely automatic! The flasher erases Partition 23, and OpenWrt automatically formats and mounts the ~17.4 MB UBIFS overlay on first boot.
+- **No manual commands needed:** You do **not** need to run `mtd erase` or `ubimkvol` manually.
+- **Web Interface (LuCI):** Accessible at `http://192.168.1.1`.
+- **SSH Access:** `ssh root@192.168.1.1` (no password required). All configuration changes persist across power cuts and reboots.
 
 ---
 
